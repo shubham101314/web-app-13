@@ -3,7 +3,7 @@ name: CI-CD Pipeline
 on:
   push:
     branches:
-      - main   # change if needed
+      - main
 
 env:
   IMAGE_NAME: shubham101314/cake-app
@@ -17,8 +17,23 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ap-south-1   # change if needed
+
+    - name: Get EC2 Public IP
+      id: ec2
+      run: |
+        IP=$(aws ec2 describe-instances \
+          --filters "Name=tag:Name,Values=frontend-server" \
+          --query "Reservations[].Instances[].PublicIpAddress" \
+          --output text)
+        
+        echo "EC2_IP=$IP" >> $GITHUB_ENV
+        echo "EC2 IP is $IP"
 
     - name: Login to DockerHub
       uses: docker/login-action@v3
@@ -34,7 +49,7 @@ jobs:
     - name: Deploy to EC2 via SSH
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.EC2_HOST }}
+        host: ${{ env.EC2_IP }}
         username: ec2-user
         key: ${{ secrets.EC2_SSH_KEY }}
         script: |
@@ -42,4 +57,3 @@ jobs:
           docker stop frontend || true
           docker rm frontend || true
           docker run -d -p 5000:80 --name frontend $IMAGE_NAME:latest
-
