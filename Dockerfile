@@ -17,7 +17,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy only necessary files from builder
-COPY --from=builder /app /usr/share/nginx/html
+COPY --from=builder /app /usr/share/nginx/index.html
 
 EXPOSE 80
 
