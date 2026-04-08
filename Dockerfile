@@ -1,7 +1,7 @@
 # Stage 1: Prepare (optional build stage)
 FROM alpine:3.19 AS builder
 
-WORKDIR /app
+WORKDIR /cake-main
 COPY . .
 
 # You can add optional steps here like:
@@ -21,4 +21,4 @@ COPY --from=builder /app /usr/share/nginx/html/
 
 EXPOSE 80
 
-CMD ["nginx", "-g","0.0.0.0:80","daemon off;"]
+CMD ["nginx", "-g","daemon off;"]
