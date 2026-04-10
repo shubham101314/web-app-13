@@ -10,21 +10,30 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
+      - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload artifact
+      - name: Upload static files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./cake-main   # your static files folder
+          path: ./cake-main   # make sure this folder has index.html
 
       - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
