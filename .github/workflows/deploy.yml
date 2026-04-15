@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
@@ -26,13 +26,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate site structure
+        run: |
+          if [ ! -f "cake-main/index.html" ]; then
+            echo "ERROR: index.html not found in cake-main/"
+            exit 1
+          fi
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v4
 
-      - name: Upload static files
+      - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./cake-main   # make sure this folder has index.html
+          path: ./cake-main
 
       - name: Deploy to GitHub Pages
         id: deployment
