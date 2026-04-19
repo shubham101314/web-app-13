@@ -17,7 +17,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy only necessary files from builder
-COPY --from=builder /cake-main/index.html /usr/share/nginx/html/
+COPY --from=builder /cake-main/index /usr/share/nginx/html/
 
 EXPOSE 80
 
