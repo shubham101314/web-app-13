@@ -1,24 +1,10 @@
-# Stage 1: Prepare (optional build stage)
-FROM alpine:3.19 AS builder
-
-WORKDIR /cake-main
-COPY . .
-
-# You can add optional steps here like:
-# - minify files
-# - remove unwanted files
-# For now, just copying
-
-
-# Stage 2: Production (Nginx)
 FROM nginx:alpine
 
-# Remove default nginx files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy only necessary files from builder
-COPY --from=builder cake-main/ /usr/share/nginx/html/
+# COPY ONLY CONTENT, not wrapper folder
+COPY cake-main/ /usr/share/nginx/html/
 
 EXPOSE 80
 
-CMD ["nginx", "-g","daemon off;"]
+CMD ["nginx", "-g", "daemon off;"]
