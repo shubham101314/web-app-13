@@ -6,10 +6,6 @@ pipeline {
         DOCKER_TAG = "latest"
     }
 
-    stages {
-    pipeline {
-    agent any
-
     options {
         skipDefaultCheckout(true)
     }
