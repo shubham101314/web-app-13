@@ -7,7 +7,12 @@ pipeline {
     }
 
     stages {
+    pipeline {
+    agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
         stage('Clone Repo') {
             steps {
                 git 'https://github.com/shubham101314/web-app-13.git'
