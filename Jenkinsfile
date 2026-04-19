@@ -8,6 +8,8 @@ pipeline {
     environment {
         DOCKER_IMAGE = "shubham101314/cake-app"
         DOCKER_TAG = "${BUILD_NUMBER}"
+        EC2_USER = "ec2-user"
+        EC2_HOST = "<EC2_PUBLIC_IP>"
     }
 
     stages {
@@ -20,9 +22,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh '''
+                sh """
                 docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
-                '''
+                """
             }
         }
 
@@ -33,42 +35,44 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh '''
+                    sh """
                     echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    '''
+                    """
                 }
             }
         }
 
         stage('Push Image') {
             steps {
-                sh '''
+                sh """
                 docker push $DOCKER_IMAGE:$DOCKER_TAG
-                '''
+                """
             }
         }
 
         stage('Deploy to EC2') {
-    steps {
-        sshagent(['ec2-ssh-key']) {
-            sh '''
-            ssh -o StrictHostKeyChecking=no ec2-user@<EC2_PUBLIC_IP> "
-                set -e
-                docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
-                docker stop frontend || true &&
-                docker rm frontend || true &&
-                docker run -d -p 5000:80 --name frontend $DOCKER_IMAGE:$DOCKER_TAG
-            "
-            '''
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $EC2_USER@$EC2_HOST "
+                        set -e
+                        docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                        docker stop frontend || true &&
+                        docker rm frontend || true &&
+                        docker run -d -p 5000:80 --name frontend $DOCKER_IMAGE:$DOCKER_TAG
+                    "
+                    """
+                }
+            }
         }
     }
-}
+
     post {
         success {
-            echo "Pipeline executed successfully"
+            echo "✅ Pipeline executed successfully"
         }
         failure {
-            echo "Pipeline failed. Check logs."
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
