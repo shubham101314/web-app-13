@@ -1,23 +1,28 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = "shubham101314/cake-app"
-        DOCKER_TAG = "latest"
-    }
-
     options {
         skipDefaultCheckout(true)
     }
+
+    environment {
+        DOCKER_IMAGE = "shubham101314/cake-app"
+        DOCKER_TAG = "${BUILD_NUMBER}"
+    }
+
+    stages {
+
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/shubham101314/web-app-13.git'
+                git branch: 'main', url: 'https://github.com/shubham101314/web-app-13.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                sh '''
+                docker build -t $DOCKER_IMAGE:$DOCKER_TAG .
+                '''
             }
         }
 
@@ -28,14 +33,18 @@ pipeline {
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh '''
+                    echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                    '''
                 }
             }
         }
 
         stage('Push Image') {
             steps {
-                sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
+                sh '''
+                docker push $DOCKER_IMAGE:$DOCKER_TAG
+                '''
             }
         }
 
@@ -44,6 +53,7 @@ pipeline {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ec2-user@<EC2_PUBLIC_IP> << EOF
+                    set -e
                     docker pull $DOCKER_IMAGE:$DOCKER_TAG
                     docker stop frontend || true
                     docker rm frontend || true
@@ -54,3 +64,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo "Pipeline executed successfully"
+        }
+        failure {
+            echo "Pipeline failed. Check logs."
+        }
+    }
+}
