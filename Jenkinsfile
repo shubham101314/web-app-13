@@ -49,22 +49,20 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@<EC2_PUBLIC_IP> << EOF
-                    set -e
-                    docker pull $DOCKER_IMAGE:$DOCKER_TAG
-                    docker stop frontend || true
-                    docker rm frontend || true
-                    docker run -d -p 5000:80 --name frontend $DOCKER_IMAGE:$DOCKER_TAG
-                    EOF
-                    '''
-                }
-            }
+    steps {
+        sshagent(['ec2-ssh-key']) {
+            sh '''
+            ssh -o StrictHostKeyChecking=no ec2-user@<EC2_PUBLIC_IP> "
+                set -e
+                docker pull $DOCKER_IMAGE:$DOCKER_TAG &&
+                docker stop frontend || true &&
+                docker rm frontend || true &&
+                docker run -d -p 5000:80 --name frontend $DOCKER_IMAGE:$DOCKER_TAG
+            "
+            '''
         }
     }
-
+}
     post {
         success {
             echo "Pipeline executed successfully"
