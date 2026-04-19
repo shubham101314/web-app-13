@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -8,8 +9,10 @@ pipeline {
     environment {
         DOCKER_IMAGE = "shubham101314/cake-app"
         DOCKER_TAG = "${BUILD_NUMBER}"
+
+        // IMPORTANT: replace with your real EC2 public IP
         EC2_USER = "ec2-user"
-        EC2_HOST = "<EC2_PUBLIC_IP>"
+        EC2_HOST = "3.110.25.44"
     }
 
     stages {
@@ -69,10 +72,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Pipeline executed successfully"
+            echo "✅ Pipeline completed successfully"
         }
         failure {
             echo "❌ Pipeline failed. Check logs."
         }
     }
-}
+}i
